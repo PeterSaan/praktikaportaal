@@ -16,12 +16,18 @@ app.get('/', (req, res) => {
 
 app.get('/users', async (req, res) => {
     const allUsers = await prisma.user.findMany();
-    res.json(allUsers);
+    res.status(200).json(allUsers);
 });
 
-app.get('/user/create', (req, res) => {
+app.get('/users/:id', async (req, res) => {
+    const paramSearch = req.params.id;
+
+    res.redirect('/users');
+});
+
+app.get('/register', (req, res) => {
     res.send(`
-    <form action="/userCreate" method="post">
+    <form action="/register" method="post">
         <label for="firstName">First name</label>
         <input type="text" id="firstName" name="firstName" required><br>
         <label for="lastName">Last name</label>
@@ -30,28 +36,29 @@ app.get('/user/create', (req, res) => {
         <input type="email" id="email" name="email" required><br>
         <label for="password">Password</label>
         <input type="password" id="password" name="password" required><br>
-        <button type="submit">Submit</button>
     </form>
     `);
 });
 
-app.post('/user/create', async (req, res) => {
+app.post('/register', async (req, res) => {
+    const hashedPass = await bcrypt.hash(req.body.password, 10);
+    
     try {
         await prisma.user.create({
             data: {
                 firstName: req.body.firstName,
                 lastName: req.body.lastName,
                 email: req.body.email,
-                password: req.body.password
+                password: hashedPass
             }
         });
 
         res.redirect('/users');
+    } catch(err) {
+        res.redirect('/register');
+        console.log('Something went wrong:', err);
     }
-    catch {
-        res.send('Error creating user or user already exists');
-    }
-})
+});
 
 app.listen(port, () => {
     console.log(`Server is running at http://localhost:${port}`)
