@@ -20,8 +20,6 @@ app.get('/users', async (req, res) => {
 });
 
 app.get('/users/:id', async (req, res) => {
-    const paramSearch = req.params.id;
-
     res.redirect('/users');
 });
 
